@@ -1,0 +1,210 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:aop="http://www.springframework.org/schema/aop"
+    xsi:schemaLocation="
+     http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-3.0.xsd
+     http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+     http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop.xsd">
+
+	<!--通过注解扫描定义的bean-->
+	<!--扫描base-pack下面或者子包下面的java文件，
+	如果扫描到有@Component @Controller@Service等这些注解的类，则把这些类注册为bean-->
+	<!--如果配置了<context:component-scan>那么<context:annotation-config/>标签就可以不用再xml中配置了，因为前者包含了后者-->
+	<!--先说一下<context:component-scan>有一个use-default-filters属性，改属性默认为true,这就意味着会扫描指定包下的全部的标有@Component的类，并注册成bean.也就是@Component的子注解@Service,@Reposity等-->
+	<context:component-scan base-package="com.zlb;"/>
+	<!--<context:component-scan base-package="com.zlb;" use-default-filters="false">
+		扫描base-package指定下的有@Controller下的java类，并注册成bean
+		<context:include-filter type="annotation" expression="org.springframework.stereotype.Controller"/>
+		指定不扫描base-package指定下的有@Service，
+		<context:exclude-filter type="annotation" expression="org.springframework.stereotype.Service"/>
+	</context:component-scan>-->
+
+	<!-- Druid-Wall -->
+	<bean id="wall-filter" class="com.alibaba.druid.wall.WallFilter">
+		<!--一些应用框架做了自己的JDBC Proxy Driver，是的DruidDataSource无法正确识别数据库的类型，则需要特别指定dbType-->
+		<property name="dbType" value = "mysql" />
+		<!--logViolation false 对被认为是攻击的SQL进行LOG.error输出 throwException true 对被认为是攻击的SQL抛出SQLExcepton-->
+		<!--开始引入WallFilter的时候，把logViolation设置为true，而throwException设置为false。就可以观察是否存在违规的情况，同时不影响业务运行。-->
+		<property name="logViolation" value="true" />
+		<property name="throwException" value="false" />
+	</bean>
+
+	<!--Druid介绍
+	Druid是一个 JDBC 连接池、监控组件，它包括三部分：
+	DruidDriver 代理 Driver，能够提供基于Filter－Chain模式的插件体系。
+	DruidDataSource 高效可管理的数据库连接池。
+	SQLParser
+	Druid可以做什么？
+	可以监控数据库访问性能，Druid内置提供了一个功能强大的StatFilter插件，能够详细统计SQL的执行性能，这对于线上分析数据库访问性能有帮助。
+	替换DBCP和C3P0。Druid提供了一个高效、功能强大、可扩展性好的数据库连接池。
+	数据库密码加密。直接把数据库密码写在配置文件中，这是不好的行为，容易导致安全问题。DruidDruiver和DruidDataSource都支持PasswordCallback。
+	SQL执行日志，Druid提供了不同的LogFilter，能够支持Common-Logging、Log4j和JdkLog，你可以按需要选择相应的LogFilter，监控你应用的数据库访问情况。-->
+	<!-- DruidDataSource -->
+
+	<!--需要 com.mysql.jdbc.Driver-->
+	<bean id="dataSource" class="com.alibaba.druid.pool.DruidDataSource" init-method="init" destroy-method="close">
+		<!-- 基本属性 url、user、password -->
+		<property name="url" value="${db.url}" />
+		<property name="username" value="${db.username}" />
+		<property name="password" value="${db.password}" />
+		<!--最大连接池数量-->
+		<property name="maxActive" value="50" />
+		<!--初始化时建立物理连接的个数。初始化发生在显示调用init方法，
+		或者第一次getConnection时-->
+		<property name="initialSize" value="5" />
+		<!-- 连接池最小空闲 -->
+		<property name="minIdle" value="5" />
+		<!-- 配置获取连接等待超时的时间 -->
+		<property name="maxWait" value="45000" />
+		<!-- 配置间隔多久才进行一次检测，检测需要关闭的空闲连接，单位是毫秒 -->
+		<property name="timeBetweenEvictionRunsMillis" value="60000"/>
+		<!-- 配置一个连接在池中最小生存的时间，单位是毫秒 -->
+		<property name="minEvictableIdleTimeMillis" value="300000"/>
+		<!--用来检测连接是否有效的sql，要求是一个查询语句。-->
+		<property name="validationQuery" value="SELECT 'x'"/>
+		<!--建议配置为true，不影响性能，并且保证安全性。
+		申请连接的时候检测，如果空闲时间大于
+		timeBetweenEvictionRunsMillis，
+		执行validationQuery检测连接是否有效。-->
+		<property name="testWhileIdle" value="true"/>
+		<!--申请连接时执行validationQuery检测连接是否有效，
+		做了这个配置会降低性能。-->
+		<property name="testOnBorrow" value="false"/>
+		<!--归还连接时执行validationQuery检测连接是否有效，
+		做了这个配置会降低性能-->
+		<property name="testOnReturn" value="false"/>
+		<!--是否缓存preparedStatement，也就是PSCache。
+		PSCache对支持游标的数据库性能提升巨大，比如说oracle。
+		在mysql5.5以下的版本中没有PSCache功能，建议关闭掉。
+		5.5及以上版本有PSCache，建议开启。-->
+		<property name="poolPreparedStatements" value="true"/>
+		<!--要启用PSCache，必须配置大于0，当大于0时，
+		poolPreparedStatements自动触发修改为true。
+		在Druid中，不会存在Oracle下PSCache占用内存过多的问题，
+		可以把这个数值配置大一些，比如说100-->
+		<property name="maxOpenPreparedStatements" value="20"/>
+		<!--类型是List<com.alibaba.druid.filter.Filter>，
+		如果同时配置了filters和proxyFilters，
+		是组合关系，并非替换关系-->
+		<property name="proxyFilters">
+			<list>
+				<ref bean="wall-filter" />
+			</list>
+		</property>
+		<!-- 配置监控统计拦截的filters
+		属性类型是字符串，通过别名的方式配置扩展插件，
+		常用的插件有：
+		监控统计用的filter:stat
+		日志用的filter:log4j
+		 防御sql注入的filter:wall
+		 -->
+		<!--<property name="filters" value="stat,log4j,wall" /> 使用缺省配置的WallFilter-->
+	</bean>
+
+	<!--在基本的 MyBatis 中,session 工厂可以使用 SqlSessionFactoryBuilder 来创建。而在 MyBatis-Spring 中,则使用 SqlSessionFactoryBean 来替代。
+	要注意 SqlSessionFactoryBean 实现了 Spring 的 FactoryBean 接口，这就说明了由 Spring 最终创建的 bean 不是 SqlSessionFactoryBean 本身, 。
+	而是工厂类的 getObject()返回的方法的结果。这种情况下,Spring 将会在应用启动时为你 创建 SqlSessionFactory 对象,然后将它以 SqlSessionFactory 为名来存储-->
+    <bean id="sqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean" >
+		<!--JDBC 的 DataSource-->
+		<property name="dataSource" ref="dataSource" />
+		<!--它是用来指定 MyBatis 的 XML 配置文件路径的。 如果基本的 MyBatis 配置需要改变, 那么这就是一个需要它的地方。 通常这会是<settings> 或<typeAliases>的部分。
+		要注意这个配置文件不需要是一个完整的 MyBatis 配置。确切地说,任意环境,数据源 和 MyBatis 的事务管理器都会被忽略。SqlSessionFactoryBean 会创建它自己的,使用这些 值定制 MyBatis 的 Environment 时是需要的-->
+		<property name="configLocation" value="classpath:spring/mybatis-Config.xml"/>
+		<!--如果 MyBatis 映射器 XML 文件在和映射器类相同的路径下不存在,那么另外一个需要 配置文件的原因就是它了。
+		使用这个配置,有两种选择。第一是手动在 MyBatis 的 XML 配 置文件mybatis-Config.xml中使用<mappers>部分来指定类路径。第二是使用工厂 bean 的 mapperLocations 属 性。
+		mapperLocations 属性使用一个资源位置的 list。 这个属性可以用来指定 MyBatis 的 XML 映射器文件的位置。 它的值可以包含 Ant 样式来加载一个目录中所有文件, 或者从基路径下 递归搜索所有路径
+		这会从类路径下加载在 cn.joinhealth.hug.dao 包和它的子包中所有的 MyBatis 映射器 XML 文件。-->
+        <property name="mapperLocations" value="classpath:com/zlb/dao/TestMapper.xml" />
+    </bean>
+
+	<!--会使用SqlSessionFactoryBean来代替SqlSessionFactoryBuilder创建SqlSessionFactory，然后可以使用下面两种方式使用sqlSession。-->
+	<!--1、SqlSessionTemplate：
+	Mybatis-Spring提供了一种直接使用SqlSession的方式（一个实现了SqlSession接口的SqlSessionTemplate实现类）
+	它是线程安全的，可以被多个Dao同时使用；
+	它跟Spring的事务进行了关联，确保当前被使用的SqlSession是一个已经和Spring的事务进行绑定了的，而且它还可以自己管理Session的提交和关闭。
+
+	2、SqlSessionDaoSupport：
+	SqlSessionDaoSupport 是一个抽象的支持类, 用来为你提供 SqlSession。调用 getSqlSession()方法你会得到一个SqlSessionTemplate,之后可以用于执行 SQL 方法。
+	SqlSessionDaoSupport 需要一个 sqlSessionFactory 或sqlSessionTemplate 属性来设置 。 这 些要被 被 明 确地 设 置 或 者由 Spring 来 自 动 装 配 。
+	如 果 两 者 都 被 设 置 了 , 那 么 SqlSessionFactory 是被忽略的。（其实可以使用下面的MapperScannerConfigurer来自动装配）
+
+	分析：
+	上面做法没问题，但就是在spring.xml中需要配置所有的dao层实现，把sqlSession或者sqlSessionFactory注入进去。下面，可以使用MapperScannerConfigurer来解决这个问题。（通常使用这种方法作为dao层基础架构）-->
+	<!--MapperScannerConfigurer具有下面两个重要特性：
+	1）不需要指定SqlSessionFactory 或SqlSessionTemplate,MapperScannerConfigurer 将会创建 MapperFactoryBean,之后自动装配；
+	2）MapperScannerConfigurer 其实和MapperFactoryBean类似，都是创建代理然后注入到spring中；区别是前者是自动扫描数据映射器接口，生成代理类、并注入到Spring的容器中；
+
+	MapperScannerConfigurer具有下面两个重要特性：
+	1）不需要指定SqlSessionFactory 或SqlSessionTemplate,MapperScannerConfigurer 将会创建 MapperFactoryBean,之后自动装配；
+	2）MapperScannerConfigurer 其实和MapperFactoryBean类似，都是创建代理然后注入到spring中；区别是前者是自动扫描数据映射器接口，生成代理类、并注入到Spring的容器中；
+
+	我们这里不需要用MapperScannerConfigurer来创建MapperFactoryBean，以及生成代理类注入到spring中（后面的使用中会用到），我们需要：
+	1）需要MapperScannerConfigurer帮我们自动装配SqlSessionFactory 或 SqlSessionTemplate（因为SqlSessionDaoSupport 需要一个 sqlSessionFactory 或 sqlSessionTemplate属性来设置）；
+	2）我们需要自己显示的在dao层加上@Component注解（否则依赖的时候会拿到注入到spring中的MapperScannerConfigurer生成的代理类）
+	3）dao层我们继承了SqlSessionDaoSupport，所以可以直接使用getSqlSession() 方法获取sqlSessionTemplate，然后操作数据映射文件（mapper文件）里的sql了；-->
+	<!--http://blog.csdn.net/liuxiao723846/article/details/52424802-->
+    <bean class="org.mybatis.spring.mapper.MapperScannerConfigurer">
+		<!-- 可以不用指定，因为MapperScannerConfigurer会自动装配-->
+        <!--<property name="sqlSessionFactoryBeanName" value="sqlSessionFactory"/>-->
+		<property name="basePackage" value="com.zlb.dao" />
+    </bean>  
+
+	<!-- transaction config start --><!--  定义事务管理器-->
+	<bean id="transactionManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+        <property name="dataSource" ref="dataSource" />  
+    </bean>
+
+	<!--  配置事务拦截器-->
+	<bean id="transactionInterceptor" class="org.springframework.transaction.interceptor.TransactionInterceptor">
+		<!--  事务拦截器bean需要依赖注入一个事务管理器 -->
+		<property name="transactionManager" ref="transactionManager" />
+		<!--  下面定义事务传播属性-->
+		<property name="transactionAttributes">
+			<props>
+				<!--PROPAGATION_REQUIRED 支持当前事务。假设当前没有事务，就新建一个事务。这是最常见的选择。-->
+				<!--<prop key="insert*">PROPAGATION_REQUIRED,-Exception</prop>-->
+				<!-- -Exception表示有Exception抛出时,事务回滚. -代表回滚      +就代表提交-->
+				<!--readonly 就是read only, 设置操作权限为仅仅读,一般用于查询的方法,优化作用.-->
+				<prop key="get*">PROPAGATION_REQUIRED, readOnly</prop>
+				<prop key="find*">PROPAGATION_REQUIRED, readOnly</prop>
+				<prop key="list*">PROPAGATION_REQUIRED, readOnly</prop>
+				<prop key="query*">PROPAGATION_REQUIRED, readOnly</prop>
+				<prop key="search*">PROPAGATION_REQUIRED, readOnly</prop>
+				<prop key="*">PROPAGATION_REQUIRED</prop>
+			</props>
+		</property>
+	</bean>
+
+	<!--定义 BeanNameAutoProxyCreator,该bean是个bean后处理器，无需被引用，因此没有id属性
+	这个bean后处理器，根据事务拦截器为目标bean自动创建事务代理
+
+	BeanNameAutoProxyCreator 默认使用Jdk动态代理。如果要使用cglib代理类，则加入属性配置：
+	<property name="proxyTargetClass" value="true" />
+	该属性值默认为false。
+	-->
+	<bean class="org.springframework.aop.framework.autoproxy.BeanNameAutoProxyCreator">
+		<!--指定对满足哪些bean name 以Service结尾的bean自动生成业务代理 -->
+		<property name="beanNames">
+			<list>
+				<value>*Service</value>
+				<!--  此处可增加其他需要自动创建事务代理的bean-->
+			</list>
+		</property>
+
+		<!--  下面定义 BeanNameAutoProxyCreator 所需的事务拦截器-->
+		<property name="interceptorNames">
+			<list>
+				<value>transactionInterceptor</value>
+				<!-- 此处可增加其他新的Interceptor -->
+			</list>
+		</property>
+	</bean>
+
+	<!--对在上下文中配置的属性的处理-->
+	<bean class="org.springframework.transaction.interceptor.TransactionAttributeSourceAdvisor">
+		<property name="transactionInterceptor" ref="transactionInterceptor" />
+	</bean>
+
+</beans>

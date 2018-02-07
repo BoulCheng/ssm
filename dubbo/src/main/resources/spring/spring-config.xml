@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:aop="http://www.springframework.org/schema/aop"
+
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+						http://www.springframework.org/schema/beans/spring-beans.xsd
+						http://www.springframework.org/schema/context
+						http://www.springframework.org/schema/context/spring-context.xsd
+						http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop.xsd">
+<!--
+    使用语法： xmlns:namespace-prefix="namespaceURI"。其中namespace-prefix为自定义前缀，只要在这个XML文档中保证前缀不重复即可；namespaceURI是这个前缀对应的XML Namespace的定义。【namespaceURI中的内容定义了xml所有配置规范】例如，
+    xmlns:context="http://www.springframework.org/schema/context"
+    这一句定义了一个http://www.springframwork.org/schema/context的Namespace（这和Java类中的包的声明很相似），并将其和前缀context绑定。所以上面的Spring XML文档中会有这么一句：
+    <context:component-scan base-package="xxx.xxx.controller" />
+    这里的<component-scan/>元素就来自别名为context的XML Namespace，也就是在http://www.springframework.org/schema/context中定义的
+
+     xmlns表示默认的Namespace。例如Spring XML文档中的
+     xmlns="http://www.springframework.org/schema/beans"
+     这一句表示该文档默认的XML Namespace为http://www.springframwork.org/schema/beans。对于默认的Namespace中的元素，可以不使用前缀。例如Spring XML文档中的
+     xmlns:xsi表示使用xsi作为前缀的Namespace，当然前缀xsi需要在文档中声明。
+
+     xsi:schemaLocation属性其实是Namespace为http://www.w3.org/2001/XMLSchema-instance里的schemaLocation属性，正是因为我们一开始声明了
+     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+     这里才写作xsi:schemaLocation（当然一般都使用这个前缀）。它定义了XML Namespace和对应的XSD（Xml Schema Definition）文档的位置的关系。它的值由一个或多个URI引用对组成，两个URI之间以空白符分隔（空格和换行均可）。第一个URI是定义的XML Namespace的值，第二个URI给出Schema文档的位置，Schema处理器将从这个位置读取Schema文档，该文档的targetNamespace必须与第一个URI相匹配。
+
+     xsi:schemaLocation="http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd"
+    这里表示Namespace为http://www.springframework.org/schema/context的Schema的位置为http://www.springframework.org/schema/context/spring-context.xsd。
+
+     来自 https://yq.aliyun.com/articles/40353
+-->
+
+    <!-- 引入配置文件 -->
+    <!--PropertyPlaceholderConfigurer可以将上下文（配置文 件）中的属性值放在另一个单独的标准java Properties文件中去。在XML文件中用${key}替换指定的properties文件中的值。这样的话，只需要对properties文件进 行修改，而不用对xml配置文件进行修改。-->
+    <bean id="propertyConfigurer" class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
+        <property name="locations">
+            <list>
+                <!--tomcat所在的盘 除盘符开始 Test调试则是工程所在盘-->
+                <value>file:/github/study-demo/config/file/datasource.properties</value>
+                <value>file:/github/study-demo/config/file/dubbo.properties</value>
+            </list>
+        </property>
+    </bean>
+
+    <!--classpath路径下得文件-->
+    <import resource="spring-db.xml"></import>
+    <import resource="spring-dubbo.xml"></import>
+</beans>

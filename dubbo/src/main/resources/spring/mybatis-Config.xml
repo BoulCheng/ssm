@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE configuration PUBLIC "-//mybatis.org//DTD Config 3.0//EN" "http://mybatis.org/dtd/mybatis-3-config.dtd">
+<!--DOCTYPE文档类型Document Type-->
+<!--最简单的 DOCTYPE 声明只标识文档的根元素。
+<!DOCTYPE rootElement>
+更常见的情况是，使用 DOCTYPE 声明的文档引用包含组成 DTD 的声明的外部文档。 以下内容可以用于标识外部 DTD。文档类型定义(Document Type Definition)
+<!DOCTYPE rootElement SYSTEM "URIreference">
+URIreference 指向包含声明的文件。
+<!DOCTYPE rootElement PUBLIC "PublicIdentifier" "URIreference">
+PublicIdentifier 提供一个独立的标识符，有些 XML 分析器可以使用该标识符引用 DTD，代替 URIreference。
+如果使用分析器的系统没有网络连接，或该连接可能会明显减慢处理速度，可以使用此标识符。-->
+<configuration>
+	<settings>	<!-- 驼峰转化, 表字段下划线去掉,后面的第一个字母转大写 -->
+		<!--Enables automatic mapping from classic database column names A_COLUMN
+		to camel case classic Java property names aColumn.
+		使经典数据库列名称A_COLUMN自动映射到骆驼案例经典Java属性名称-->
+		<setting name="mapUnderscoreToCamelCase" value="true" />
+	</settings>
+	<!--<plugins>&lt;!&ndash;实现Interceptor&ndash;&gt;
+		&lt;!&ndash; 分页插件配置 &ndash;&gt;
+	    <plugin interceptor="com.github.pagehelper.PageHelper">
+	        <property name="dialect" value="mysql"/>  
+	    </plugin>
+		&lt;!&ndash;<plugin interceptor="com.zlb.interceptor.SqlCostInterceptor">
+		</plugin>&ndash;&gt;
+	</plugins>	-->
+</configuration>
+		<!--DOCTYPE 声明 [XML 标准]
+
+		其他版本
+		DOCTYPE 声明为文档提供一个空间，通过引用外部文件、通过直接声明或通过这两种方式来标识其根元素和文档类型定义 (DTD)。
+		DOCTYPE 声明可以包含下列内容：
+		文档或根元素的名称。
+		如果使用 DOCTYPE 声明，此内容是必选项。
+		可以用于验证文档结构的 DTD 系统标识符和公共标识符。
+		如果使用公共标识符，必须同时提供系统标识符。
+		DTD 声明的内部子集。
+		内部子集出现在方括号 ([ ]) 之间。
+		如果文档要在验证环境中进行处理，DOCTYPE 声明是必选项。 要生效，DOCTYPE 声明必须标识与文档的文档结构对应的 DTD。 非验证分析器将接受没有 DOCTYPE 声明的文档。
+		最简单的 DOCTYPE 声明只标识文档的根元素。
+		<!DOCTYPE rootElement>
+		更常见的情况是，使用 DOCTYPE 声明的文档引用包含组成 DTD 的声明的外部文档。 以下内容可以用于标识外部 DTD。
+		<!DOCTYPE rootElement SYSTEM "URIreference">
+		URIreference 指向包含声明的文件。
+		<!DOCTYPE rootElement PUBLIC "PublicIdentifier" "URIreference">
+		PublicIdentifier 提供一个独立的标识符，有些 XML 分析器可以使用该标识符引用 DTD，代替 URIreference。 如果使用分析器的系统没有网络连接，或该连接可能会明显减慢处理速度，可以使用此标识符。
+		DOCTYPE 声明还可以在内部子集中直接包含声明。 如果 DOCTYPE 声明直接包含整个 DTD，而没有引用外部文件，将使用以下语法。
+		<!DOCTYPE rootElement [
+				declarations
+				]>
+		如果 DOCTYPE 声明包含的声明将与外部文件或外部子集组合使用，将使用以下语法。
+		<!DOCTYPE rootElement SYSTEM "URIreference"[
+				declarations
+				]>
+		或
+		<!DOCTYPE rootElement PUBLIC "PublicIdentifier" "URIreference"[
+				declarations
+				]>-->
